@@ -1,0 +1,36 @@
+#include "counter.h"
+#include "encode.h"
+#include "decode.h"
+
+int main(){
+    int i;
+    FILE *fp = fopen("./File/test.txt", "rb");
+    FILE *out = fopen("./File/out.txt", "wb");
+    WeightType count[NChar] = {0};
+    WeightType FileLength = 0;
+    parseFile(fp, count, &FileLength);
+    CharType order[NChar];
+    sort(count, order);
+    
+    int NNode = 0, NLeaf = 0;
+    for(i = 0; i < NChar; i++)
+        if(count[i] != 0) break;
+    NLeaf = NChar - i;
+    NNode = NLeaf * 2 - 1;
+
+    HTNode HT[NNode];
+    createHT(HT, count, order, NLeaf);
+    CharType HCode[256][33]; // [0] 存储编码长度，[1-32] 存储编码
+    getHCode(HT, HCode, NLeaf);
+    fseek(fp, 0, SEEK_SET);
+    encodeFile(fp, out, HCode);
+    fclose(fp);
+    fclose(out);
+
+    FILE *out1 = fopen("./File/out.txt", "rb");
+    FILE *out2 = fopen("./File/out2.txt", "wb");
+    decodeFile(out1, out2, HT, NLeaf);
+    fclose(out1);
+    fclose(out2); 
+    return 0;
+}
